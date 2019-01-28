@@ -16,8 +16,8 @@
 - To log the results into JSON
   1. Go to `settings.py`
   2. Uncomment lines 68-70
+  3. Check `recipes.json` with results
   > WARNING: Large file may be generated if crawler had run for long
-  1. Check `recipes.json` with results
 
 ## Run custom crawler
 > In Progress
