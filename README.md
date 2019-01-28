@@ -10,7 +10,7 @@
 
 ## Scrapy crawler
 - Run using
-  > ```scrapy crawl recipes```
+  ```scrapy crawl recipes```
 - Add `--nolog` flag to run without logs
 - `Ctrl + C` twice to stop crawler
 - To log the results into JSON
