@@ -121,7 +121,7 @@ async def get_page_bytes(url: str) -> bytes:
 
 
 async def crawl(queue: asyncio.Queue,
-                parent_url,
+                parent_url: str,
                 verbose: bool = False,
                 save: bool = False,
                 regex: str = r'/recipe/.+') -> None:
