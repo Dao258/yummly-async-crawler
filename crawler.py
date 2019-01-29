@@ -57,6 +57,8 @@ def process_recipe(recipe: Dict, verbose: bool = False, save: bool = False) -> N
     save (bool, optional): Defaults to False. Flag to save to crawler_recipes.json file
   """
 
+  if not recipe:
+    pass
   if verbose:
     log.info(pformat(recipe))
   elif save:
@@ -74,28 +76,30 @@ def parse_page_soup(url: str, soup: bytes) -> Dict:
   Returns:
     Dict: Recipe information
   """
-
-  recipe_name = soup.select('h1')[0].text
-  recipe_photo = soup.select('div.recipe-details-image > img')[0]['src']
-  ingredients = [' '.join([t.text for t in li.find_all('span', recursive=False)]).replace(
-      u'\xa0', u' ').strip() for li in soup.select('div.recipe-ingredients li')]
-  half_star_tags = soup.select('#reviews span.half-star')
-  full_stars_tags = soup.select('a.recipe-details-rating span.full-star')
-  half_star = float(half_star_tags[0]['data-star-number']) if half_star_tags else 0.0
-  full_stars = float(full_stars_tags[-1]['data-star-number']) if full_stars_tags else 0.0
-  ratings = full_stars + (0.5 if full_stars < 5 and half_star else 0.0)
-  reviews = int(soup.select('#reviews span')[0].text.strip('()'))
-  cook_time = ' '.join(t.text for t in soup.select(
-      'div.recipe-summary-item.unit span')).replace(u'\xa0', u' ')
-  serve_tags = soup.select('div.servings input')
-  serve = int(serve_tags[0]['value']) if serve_tags else 1
-  return dict(recipeName=recipe_name,
-              recipePhoto=recipe_photo,
-              ingredients=ingredients,
-              ratings=ratings,
-              reviews=reviews,
-              cookTime=cook_time,
-              serve=serve)
+  try:
+    recipe_name = soup.select('h1')[0].text
+    recipe_photo = soup.select('div.recipe-details-image > img')[0]['src']
+    ingredients = [' '.join([t.text for t in li.find_all('span', recursive=False)]).replace(
+        u'\xa0', u' ').strip() for li in soup.select('div.recipe-ingredients li')]
+    half_star_tags = soup.select('#reviews span.half-star')
+    full_stars_tags = soup.select('a.recipe-details-rating span.full-star')
+    half_star = float(half_star_tags[0]['data-star-number']) if half_star_tags else 0.0
+    full_stars = float(full_stars_tags[-1]['data-star-number']) if full_stars_tags else 0.0
+    ratings = full_stars + (0.5 if full_stars < 5 and half_star else 0.0)
+    reviews = int(soup.select('#reviews span')[0].text.strip('()'))
+    cook_time = ' '.join(t.text for t in soup.select(
+        'div.recipe-summary-item.unit span')).replace(u'\xa0', u' ')
+    serve_tags = soup.select('div.servings input')
+    serve = int(serve_tags[0]['value']) if serve_tags else 1
+    return dict(recipeName=recipe_name,
+                recipePhoto=recipe_photo,
+                ingredients=ingredients,
+                ratings=ratings,
+                reviews=reviews,
+                cookTime=cook_time,
+                serve=serve)
+  except:
+    return {}
 
 
 async def get_page_bytes(url: str) -> bytes:
