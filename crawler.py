@@ -5,13 +5,18 @@ import argparse
 import logging
 import sys
 import json
+import re
 from typing import Dict
+from urllib import parse
 
 import aiohttp
 import async_timeout
 import html5lib
 from bs4 import BeautifulSoup
 from pprint import pformat
+
+from utils import get_parent_url
+
 
 parser = argparse.ArgumentParser(description='Run web crawler asynchronously')
 parser.add_argument('--url', type=str, required=True, help='Source url to start the crawler from')
@@ -26,17 +31,20 @@ log.setLevel(logging.INFO)
 crawled_urls = set()
 
 
-def update_queue(queue: asyncio.Queue, soup: BeautifulSoup) -> None:
+def update_queue(queue: asyncio.Queue, soup: BeautifulSoup, regexp: str, parent_url: str) -> None:
   """Update queue with new links
 
   Args:
     queue (asyncio.Queue): The asyncio queue that the work has to be done on
     soup (BeautifulSoup): BeautifulSoup object for the page
+    regex (str): Reg exp to validate recipe URL
+    parent_url (str): Parent URL
   """
 
-  for url in soup.find_all('a', href=True):
-    if url not in crawled_urls:
-      queue.put_nowait(url)
+  for link in soup.find_all('a', href=True):
+    new_link = parse.urljoin(parent_url, link['href'])
+    if re.search(regexp, new_link) and get_parent_url(new_link) == parent_url and new_link not in crawled_urls:
+      queue.put_nowait(new_link)
 
 
 def process_recipe(recipe: Dict, verbose: bool = False, save: bool = False) -> None:
@@ -51,7 +59,7 @@ def process_recipe(recipe: Dict, verbose: bool = False, save: bool = False) -> N
   if verbose:
     log.info(pformat(recipe))
   elif save:
-    with open('crawler_recipes.json', 'w+') as f:
+    with open('crawler_recipes.json', 'a+') as f:
       f.write(json.dumps(recipe) + '\n')
 
 
@@ -101,31 +109,25 @@ async def get_page_bytes(url: str) -> bytes:
 
   async with aiohttp.ClientSession() as session:
     async with session.get(url) as response:
-      await asyncio.sleep(0)
       if response.status == 200:
         page_bytes = await response.read()
         return page_bytes
       return None
 
 
-async def process(url, verbose=False, save=False):
-  page_bytes = await get_page_bytes(url)
-  if page_bytes:
-    soup = BeautifulSoup(page_bytes.decode('utf-8'), 'html5lib')
-    recipe = parse_page_soup(url, soup)
-    process_recipe(recipe, verbose, save)
-    for link in soup.find_all('a', href=True):
-      if link['href'] not in crawled_urls:
-        log.info(link['href'])
-
-
-async def crawl(queue: asyncio.Queue, verbose: bool = False, save: bool = False) -> None:
+async def crawl(queue: asyncio.Queue,
+                parent_url,
+                verbose: bool = False,
+                save: bool = False,
+                regex: str = r'/recipe/.+') -> None:
   """Crawls URLs in the queue while updating the queue itself with URLs
 
   Args:
     queue (asyncio.Queue): The asyncio queue that the work has to be done on
+    parent_url (str): Parent URL
     verbose (bool, optional): Defaults to False. Flag to log out to terminal
     save (bool, optional): Defaults to False. Flag to save to crawler_recipes.json file
+    regex (str, optional): Defaults to r'/recipe/.+'. Reg exp to validate recipe URL
   """
 
   global crawled_urls
@@ -139,6 +141,7 @@ async def crawl(queue: asyncio.Queue, verbose: bool = False, save: bool = False)
           soup = BeautifulSoup(page_bytes.decode('utf-8'), 'html5lib')
           recipe = parse_page_soup(url, soup)
           process_recipe(recipe, verbose, save)
+          update_queue(queue, soup, regex, parent_url)
       queue.task_done()
   except asyncio.CancelledError:
     log.debug('Error: The worker has been cancelled; perhaps on purpose')
@@ -150,22 +153,20 @@ def main() -> None:
   """
 
   args = parser.parse_args()
+  parent_url = get_parent_url(args.url)
+  if not parent_url:
+    raise Exception('Unsupported URL provided')
   if not args.verbose and args.save:
     with open('crawler_recipes.json', 'w'):
       pass
-  # loop = asyncio.get_event_loop()
-  # queue = asyncio.Queue()
-  # queue.put_nowait(args.url)
-  # workers = [asyncio.ensure_future(crawl(queue)) for _ in range(args.workers)]
-  # loop.run_until_complete(queue.join())
-  # for w in workers:
-  #   w.cancel()
-  # loop.close()
-  event_loop = asyncio.get_event_loop()
-  try:
-      event_loop.run_until_complete(process(args.url, args.verbose, args.save))
-  finally:
-      event_loop.close()
+  loop = asyncio.get_event_loop()
+  queue = asyncio.Queue()
+  queue.put_nowait(args.url)
+  workers = [asyncio.ensure_future(crawl(queue, parent_url, verbose=args.verbose, save=args.save)) for _ in range(args.workers)]
+  loop.run_until_complete(queue.join())
+  for w in workers:
+    w.cancel()
+  loop.close()
 
 
 if __name__ == '__main__':
