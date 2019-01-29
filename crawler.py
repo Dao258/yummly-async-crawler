@@ -1,3 +1,4 @@
+#/usr/bin/env
 """A simple async web crawler"""
 
 import asyncio
@@ -19,10 +20,10 @@ from utils import get_parent_url
 
 
 parser = argparse.ArgumentParser(description='Run web crawler asynchronously')
-parser.add_argument('--url', type=str, required=True, help='Source url to start the crawler from')
+parser.add_argument('--url', type=str, required=True, help='Source URL to start the crawler from')
 parser.add_argument('--workers', type=int, default=5, help='Number of workers to crawl')
-parser.add_argument('--verbose', action='store_true', help='Detailed output')
-parser.add_argument('--save', action='store_true', help='Save to crawler_recipes file')
+parser.add_argument('--verbose', action='store_true', help='Detailed output to stdout')
+parser.add_argument('--save', action='store_true', help='Save to crawler_recipes.json file')
 
 logging.basicConfig(stream=sys.stdout, format="%(message)s")
 log = logging.getLogger()

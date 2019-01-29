@@ -8,6 +8,7 @@
 ## Install
 ```pipenv install```
 
+
 ## Scrapy crawler
 - Run using
   ```pipenv run scrapy crawl recipes```
@@ -21,4 +22,14 @@
   > WARNING: Large file may be generated if crawler had run for long
 
 ## Custom crawler
-> In Progress
+- Run using
+  ```pipenv run python crawler.py --url https://www.yummly.com/recipes```
+- To get all commandline options
+  ```pipenv run python crawler.py --help```
+
+## Suggestions on adding bonus features
+- `tags`
+  1. Use NLTK library to filter webpage text with a predefined cooking related list of stopwords
+  2. Extend 1 by intersecting the above mentioned extracted tag words of a recipe with those of the immediate neighboring recipes (may require caching)
+- `recipeType`
+  1. ???Maybe use LSA???

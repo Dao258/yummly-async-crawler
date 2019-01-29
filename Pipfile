@@ -7,6 +7,11 @@ verify_ssl = true
 
 [packages]
 scrapy = "*"
+aiohttp = "*"
+beautifulsoup4 = "*"
+async-timeout = "*"
+html5lib = "*"
+pprint = "*"
 
 [requires]
 python_version = "3.7"
