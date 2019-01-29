@@ -33,3 +33,7 @@
   2. Extend 1 by intersecting the above mentioned extracted tag words of a recipe with those of the immediate neighboring recipes (may require caching)
 - `recipeType`
   1. ???Maybe use LSA???
+
+## Improvements
+- Implement classes for async functions and prevent usage of global vars
+- Make it faster by debugging workers' context switches
