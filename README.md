@@ -1,5 +1,5 @@
 # yummly
-> Crawler to fetch as many recipes possible starting from https://www.yummly.com/recipes
+> Async crawler to fetch as many recipes possible starting from https://www.yummly.com/recipes
 
 ## Prerequisites
 - Python 3.7+ with `pip`
