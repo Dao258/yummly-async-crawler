@@ -1,6 +1,10 @@
 # yummly
 > Async crawler to fetch as many recipes possible starting from https://www.yummly.com/recipes
 
+## Contents
+- Scrapy crawler to spec out requirements
+- Custom crawler using asyncio
+
 ## Prerequisites
 - Python 3.7+ with `pip`
 - Pipenv (`pip install pipenv`)
