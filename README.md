@@ -1,4 +1,4 @@
-# yummly - Chefling task
+# yummly
 > Crawler to fetch as many recipes possible starting from https://www.yummly.com/recipes
 
 ## Prerequisites
